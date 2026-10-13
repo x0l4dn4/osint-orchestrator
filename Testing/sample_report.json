@@ -1,0 +1,298 @@
+{
+  "target": {"type": "username", "value": "xavi_dmz92"},
+  "generated_at": "2026-10-13T10:15:00",
+  "modules_run": ["username_checker", "breach_checker", "whois_dns", "theharvester"],
+  "errors": [
+    {"module": "username_checker", "message": "timeout consultando tiktok.com"}
+  ],
+  "findings": [
+    {
+      "module": "username_checker",
+      "entity": {"type": "social_account", "value": "https://github.com/xavi_dmz92", "attrs": {"platform": "github", "display_name": "Xavier Domínguez", "followers": 48}},
+      "related_to": {"type": "username", "value": "xavi_dmz92"},
+      "relation": "has_account",
+      "confidence": 0.95,
+      "source": "github.com",
+      "timestamp": "2026-10-13T10:01:12"
+    },
+    {
+      "module": "username_checker",
+      "entity": {"type": "social_account", "value": "https://x.com/xavi_dmz92", "attrs": {"platform": "x", "display_name": "Xavi D."}},
+      "related_to": {"type": "username", "value": "xavi_dmz92"},
+      "relation": "has_account",
+      "confidence": 0.9,
+      "source": "x.com",
+      "timestamp": "2026-10-13T10:01:15"
+    },
+    {
+      "module": "username_checker",
+      "entity": {"type": "social_account", "value": "https://instagram.com/xavi_dmz92", "attrs": {"platform": "instagram", "display_name": "Xavi Domínguez", "posts": 212}},
+      "related_to": {"type": "username", "value": "xavi_dmz92"},
+      "relation": "has_account",
+      "confidence": 0.85,
+      "source": "instagram.com",
+      "timestamp": "2026-10-13T10:01:18"
+    },
+    {
+      "module": "username_checker",
+      "entity": {"type": "social_account", "value": "https://reddit.com/user/xavi_dmz92", "attrs": {"platform": "reddit", "karma": 1530}},
+      "related_to": {"type": "username", "value": "xavi_dmz92"},
+      "relation": "has_account",
+      "confidence": 0.8,
+      "source": "reddit.com",
+      "timestamp": "2026-10-13T10:01:21"
+    },
+    {
+      "module": "username_checker",
+      "entity": {"type": "social_account", "value": "https://twitch.tv/xavi_dmz92", "attrs": {"platform": "twitch", "note": "cuenta sin actividad, posible homónimo"}},
+      "related_to": {"type": "username", "value": "xavi_dmz92"},
+      "relation": "has_account",
+      "confidence": 0.4,
+      "source": "twitch.tv",
+      "timestamp": "2026-10-13T10:01:24"
+    },
+    {
+      "module": "username_checker",
+      "entity": {"type": "social_account", "value": "https://steamcommunity.com/id/xavi_dmz92", "attrs": {"platform": "steam", "display_name": "Xavi_Gamer_BR", "country": "BR"}},
+      "related_to": {"type": "username", "value": "xavi_dmz92"},
+      "relation": "has_account",
+      "confidence": 0.3,
+      "source": "steamcommunity.com",
+      "timestamp": "2026-10-13T10:01:27"
+    },
+    {
+      "module": "username_checker",
+      "entity": {"type": "social_account", "value": "https://gitlab.com/xavi.dmz92", "attrs": {"platform": "gitlab", "display_name": "Xavier D."}},
+      "related_to": {"type": "username", "value": "xavi.dmz92"},
+      "relation": "has_account",
+      "confidence": 0.85,
+      "source": "gitlab.com",
+      "timestamp": "2026-10-13T10:01:30"
+    },
+    {
+      "module": "username_checker",
+      "entity": {"type": "person", "value": "Xavier Domínguez", "attrs": {}},
+      "related_to": {"type": "social_account", "value": "https://github.com/xavi_dmz92"},
+      "relation": "displays_name",
+      "confidence": 0.8,
+      "source": "github.com",
+      "timestamp": "2026-10-13T10:01:33"
+    },
+    {
+      "module": "username_checker",
+      "entity": {"type": "email", "value": "Xavier.Dominguez@ProtonMail.example", "attrs": {}},
+      "related_to": {"type": "social_account", "value": "https://github.com/xavi_dmz92"},
+      "relation": "exposes_email",
+      "confidence": 0.9,
+      "source": "github.com (perfil público)",
+      "timestamp": "2026-10-13T10:01:36"
+    },
+    {
+      "module": "username_checker",
+      "entity": {"type": "email", "value": "xdmz92@mail.example", "attrs": {}},
+      "related_to": {"type": "social_account", "value": "https://reddit.com/user/xavi_dmz92"},
+      "relation": "exposes_email",
+      "confidence": 0.6,
+      "source": "reddit.com (post antiguo)",
+      "timestamp": "2026-10-13T10:01:39"
+    },
+    {
+      "module": "username_checker",
+      "entity": {"type": "domain", "value": "https://www.XDominguez.example/", "attrs": {}},
+      "related_to": {"type": "social_account", "value": "https://github.com/xavi_dmz92"},
+      "relation": "links_to",
+      "confidence": 0.9,
+      "source": "github.com (bio)",
+      "timestamp": "2026-10-13T10:01:42"
+    },
+    {
+      "module": "username_checker",
+      "entity": {"type": "domain", "value": "xdominguez.example", "attrs": {}},
+      "related_to": {"type": "social_account", "value": "https://instagram.com/xavi_dmz92"},
+      "relation": "links_to",
+      "confidence": 0.85,
+      "source": "instagram.com (bio)",
+      "timestamp": "2026-10-13T10:01:45"
+    },
+    {
+      "module": "username_checker",
+      "entity": {"type": "phone", "value": "600 12 34 56", "attrs": {}},
+      "related_to": {"type": "social_account", "value": "https://instagram.com/xavi_dmz92"},
+      "relation": "exposes_phone",
+      "confidence": 0.7,
+      "source": "instagram.com (botón de contacto)",
+      "timestamp": "2026-10-13T10:01:48"
+    },
+    {
+      "module": "breach_checker",
+      "entity": {"type": "breach", "value": "ForoGamer 2019", "attrs": {"breach_date": "2019-06-02", "data_classes": ["email", "username", "password_hash"]}},
+      "related_to": {"type": "email", "value": "xavier.dominguez@protonmail.example"},
+      "relation": "found_in_breach",
+      "confidence": 1.0,
+      "source": "haveibeenpwned.com",
+      "timestamp": "2026-10-13T10:03:02"
+    },
+    {
+      "module": "breach_checker",
+      "entity": {"type": "breach", "value": "TiendaTech 2021", "attrs": {"breach_date": "2021-11-20", "data_classes": ["email", "name", "phone", "address"]}},
+      "related_to": {"type": "email", "value": "xavier.dominguez@protonmail.example"},
+      "relation": "found_in_breach",
+      "confidence": 1.0,
+      "source": "haveibeenpwned.com",
+      "timestamp": "2026-10-13T10:03:05"
+    },
+    {
+      "module": "breach_checker",
+      "entity": {"type": "breach", "value": "MegaCombo 2020", "attrs": {"breach_date": "2020-01-15", "data_classes": ["email", "password"]}},
+      "related_to": {"type": "email", "value": "xdmz92@mail.example"},
+      "relation": "found_in_breach",
+      "confidence": 1.0,
+      "source": "haveibeenpwned.com",
+      "timestamp": "2026-10-13T10:03:08"
+    },
+    {
+      "module": "whois_dns",
+      "entity": {"type": "domain", "value": "xdominguez.example", "attrs": {"registrar": "HostingCo SL", "created": "2021-03-14", "expires": "2027-03-14"}},
+      "related_to": null,
+      "relation": null,
+      "confidence": 1.0,
+      "source": "whois",
+      "timestamp": "2026-10-13T10:05:01"
+    },
+    {
+      "module": "whois_dns",
+      "entity": {"type": "email", "value": "xavier.dominguez@protonmail.example", "attrs": {}},
+      "related_to": {"type": "domain", "value": "xdominguez.example"},
+      "relation": "registrant_email",
+      "confidence": 0.95,
+      "source": "whois",
+      "timestamp": "2026-10-13T10:05:03"
+    },
+    {
+      "module": "whois_dns",
+      "entity": {"type": "person", "value": "Xavier Dominguez", "attrs": {}},
+      "related_to": {"type": "domain", "value": "xdominguez.example"},
+      "relation": "registrant_name",
+      "confidence": 0.9,
+      "source": "whois",
+      "timestamp": "2026-10-13T10:05:05"
+    },
+    {
+      "module": "whois_dns",
+      "entity": {"type": "organization", "value": "Dominguez Studio", "attrs": {}},
+      "related_to": {"type": "domain", "value": "xdominguez.example"},
+      "relation": "registrant_org",
+      "confidence": 0.8,
+      "source": "whois",
+      "timestamp": "2026-10-13T10:05:07"
+    },
+    {
+      "module": "whois_dns",
+      "entity": {"type": "phone", "value": "+34.600123456", "attrs": {}},
+      "related_to": {"type": "domain", "value": "xdominguez.example"},
+      "relation": "registrant_phone",
+      "confidence": 0.9,
+      "source": "whois",
+      "timestamp": "2026-10-13T10:05:09"
+    },
+    {
+      "module": "whois_dns",
+      "entity": {"type": "organization", "value": "HostingCo SL", "attrs": {}},
+      "related_to": {"type": "domain", "value": "xdominguez.example"},
+      "relation": "registrar",
+      "confidence": 1.0,
+      "source": "whois",
+      "timestamp": "2026-10-13T10:05:11"
+    },
+    {
+      "module": "whois_dns",
+      "entity": {"type": "ip", "value": "203.0.113.42", "attrs": {"record": "A"}},
+      "related_to": {"type": "domain", "value": "xdominguez.example"},
+      "relation": "resolves_to",
+      "confidence": 1.0,
+      "source": "dns",
+      "timestamp": "2026-10-13T10:05:13"
+    },
+    {
+      "module": "whois_dns",
+      "entity": {"type": "domain", "value": "mx1.mailprovider.example", "attrs": {"record": "MX", "priority": 10}},
+      "related_to": {"type": "domain", "value": "xdominguez.example"},
+      "relation": "mx_record",
+      "confidence": 1.0,
+      "source": "dns",
+      "timestamp": "2026-10-13T10:05:15"
+    },
+    {
+      "module": "whois_dns",
+      "entity": {"type": "domain", "value": "ns1.hostingco.example", "attrs": {"record": "NS"}},
+      "related_to": {"type": "domain", "value": "xdominguez.example"},
+      "relation": "ns_record",
+      "confidence": 1.0,
+      "source": "dns",
+      "timestamp": "2026-10-13T10:05:17"
+    },
+    {
+      "module": "theharvester",
+      "entity": {"type": "domain", "value": "blog.xdominguez.example", "attrs": {}},
+      "related_to": {"type": "domain", "value": "xdominguez.example"},
+      "relation": "has_subdomain",
+      "confidence": 0.9,
+      "source": "theHarvester (crtsh)",
+      "timestamp": "2026-10-13T10:07:02"
+    },
+    {
+      "module": "theharvester",
+      "entity": {"type": "domain", "value": "dev.xdominguez.example", "attrs": {}},
+      "related_to": {"type": "domain", "value": "xdominguez.example"},
+      "relation": "has_subdomain",
+      "confidence": 0.9,
+      "source": "theHarvester (crtsh)",
+      "timestamp": "2026-10-13T10:07:04"
+    },
+    {
+      "module": "theharvester",
+      "entity": {"type": "domain", "value": "mail.xdominguez.example", "attrs": {}},
+      "related_to": {"type": "domain", "value": "xdominguez.example"},
+      "relation": "has_subdomain",
+      "confidence": 0.9,
+      "source": "theHarvester (dnsdumpster)",
+      "timestamp": "2026-10-13T10:07:06"
+    },
+    {
+      "module": "theharvester",
+      "entity": {"type": "ip", "value": "203.0.113.42", "attrs": {}},
+      "related_to": {"type": "domain", "value": "blog.xdominguez.example"},
+      "relation": "resolves_to",
+      "confidence": 0.9,
+      "source": "theHarvester",
+      "timestamp": "2026-10-13T10:07:08"
+    },
+    {
+      "module": "theharvester",
+      "entity": {"type": "ip", "value": "198.51.100.17", "attrs": {}},
+      "related_to": {"type": "domain", "value": "dev.xdominguez.example"},
+      "relation": "resolves_to",
+      "confidence": 0.9,
+      "source": "theHarvester",
+      "timestamp": "2026-10-13T10:07:10"
+    },
+    {
+      "module": "theharvester",
+      "entity": {"type": "email", "value": "contacto@xdominguez.example", "attrs": {}},
+      "related_to": {"type": "domain", "value": "xdominguez.example"},
+      "relation": "email_on_domain",
+      "confidence": 0.7,
+      "source": "theHarvester (bing)",
+      "timestamp": "2026-10-13T10:07:12"
+    },
+    {
+      "module": "theharvester",
+      "entity": {"type": "email", "value": "x.dominguez@xdominguez.example", "attrs": {}},
+      "related_to": {"type": "domain", "value": "xdominguez.example"},
+      "relation": "email_on_domain",
+      "confidence": 0.7,
+      "source": "theHarvester (duckduckgo)",
+      "timestamp": "2026-10-13T10:07:14"
+    }
+  ]
+}
