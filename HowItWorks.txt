@@ -1,0 +1,6 @@
+1 el builder lee el JSON, normaliza, deduplica y genera nodos y aristas
+2 render minimo: nodos y aristas con etiqueta, exportado a SVG
+3 Estilos por tipo de entidad: forma y color distintos, más un leyenda
+4 Estilos por confianza: línea continua si es alta y discontínua si es baja
+5 Nodo objetivo destacado
+6 Atrinuto url en todos los nodos que tengan enlace (perfiles, dominios) y tooltip con la fuente y fecha
