@@ -29,3 +29,11 @@ por defecto `0.7`), nodo **objetivo** destacado, y atributo `URL` + `tooltip`
 
 Dependencias: `bash` 4+, y `jq` **o** `python3` para leer el JSON; `graphviz`
 (`dot`) solo para renderizar la imagen (`sudo apt install graphviz jq`).
+
+
+## Todo and notes to take into account
+
+`awk -f progfile`
+
+The -f option instructs Awk to fetch the program from the named file. Any filename can be used in place of progfile; if the filename is -, the standard
+input is used. We will use this to call the structured report generator from the main script.
