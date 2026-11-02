@@ -13,6 +13,9 @@ WHOIS_DOMAIN=""
 USERNAME=""
 EMAIL=""
 
+DNS_REQUESTED=0
+WHOIS_REQUESTED=0
+
 SAVE_REPORT=0
 OUTPUT_SELECTED=0
 OUTPUT_DIR="$BASE_DIR/results"
@@ -58,8 +61,14 @@ error() {
 
 while getopts ":d:w:u:e:ro:h" option; do
     case "$option" in
-        d) DNS_DOMAIN="$OPTARG" ;;
-        w) WHOIS_DOMAIN="$OPTARG" ;;
+        d)
+            DNS_DOMAIN="$OPTARG"
+            DNS_REQUESTED=1
+            ;;
+        w)
+            WHOIS_DOMAIN="$OPTARG"
+            WHOIS_REQUESTED=1
+            ;;
         u) USERNAME="$OPTARG" ;;
         e) EMAIL="$OPTARG" ;;
         r) SAVE_REPORT=1 ;;
@@ -81,8 +90,8 @@ if [[ "$OUTPUT_SELECTED" -eq 1 && "$SAVE_REPORT" -eq 0 ]]; then
     error "La opción -o requiere -r."
 fi
 
-# Entrada predeterminada para DNS y WHOIS.
-if [[ -z "$DNS_DOMAIN" && -z "$WHOIS_DOMAIN" ]]; then
+# Si no se ha pedido DNS ni WHOIS, se consulta example.org en ambos.
+if [[ "$DNS_REQUESTED" -eq 0 && "$WHOIS_REQUESTED" -eq 0 ]]; then
     DNS_DOMAIN="example.org"
     WHOIS_DOMAIN="example.org"
 fi
@@ -93,12 +102,12 @@ command -v python3 >/dev/null 2>&1 \
 MODULES=()
 TARGETS=()
 
-if [[ -n "$DNS_DOMAIN" ]]; then
+if [[ "$DNS_REQUESTED" -eq 1 ]]; then
     MODULES+=("dns_lookup")
     TARGETS+=("$DNS_DOMAIN")
 fi
 
-if [[ -n "$WHOIS_DOMAIN" ]]; then
+if [[ "$WHOIS_REQUESTED" -eq 1 ]]; then
     MODULES+=("whois_lookup")
     TARGETS+=("$WHOIS_DOMAIN")
 fi
