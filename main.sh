@@ -11,12 +11,15 @@ BASE_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 DOMAIN=""
 USERNAME=""
 EMAIL=""
+
+SAVE_REPORT=0
 OUTPUT_DIR="$BASE_DIR/results"
+WORK_DIR=""
 
 usage() {
     cat <<'EOF'
 Uso:
-  ./main.sh [opciones]
+  ./main.sh [entradas] [opciones]
 
 Entradas:
   -d DOMINIO      Consultar un dominio.
@@ -24,16 +27,20 @@ Entradas:
   -e EMAIL        Consultar brechas de un correo.
 
 Opciones:
-  -o DIRECTORIO   Carpeta de resultados.
+  -r              Guardar también un informe JSON.
+  -o DIRECTORIO   Directorio de salida. Requiere -r.
   -h              Mostrar ayuda.
 
-Sin entradas se consulta example.org.
+Por defecto:
+  Los resultados se muestran en pantalla.
+  No se guardan archivos permanentes.
+  Sin entradas se consulta example.org.
 
 Ejemplos:
   ./main.sh -d example.org
   ./main.sh -u mi_usuario
-  ./main.sh -e usuario@example.org
-  ./main.sh -d example.org -u mi_usuario
+  ./main.sh -e usuario@example.org -r
+  ./main.sh -d example.org -r -o ./informes
 EOF
 }
 
@@ -42,13 +49,24 @@ error() {
     exit 1
 }
 
-# Leer opciones.
-while getopts ":d:u:e:o:h" option; do
+cleanup() {
+    if [[ "$SAVE_REPORT" -eq 0 && -n "$WORK_DIR" ]]; then
+        rm -rf -- "$WORK_DIR"
+    fi
+}
+
+OUTPUT_SELECTED=0
+
+while getopts ":d:u:e:ro:h" option; do
     case "$option" in
         d) DOMAIN="$OPTARG" ;;
         u) USERNAME="$OPTARG" ;;
         e) EMAIL="$OPTARG" ;;
-        o) OUTPUT_DIR="$OPTARG" ;;
+        r) SAVE_REPORT=1 ;;
+        o)
+            OUTPUT_DIR="$OPTARG"
+            OUTPUT_SELECTED=1
+            ;;
         h) usage; exit 0 ;;
         :) error "La opción -$OPTARG necesita un valor." ;;
         \?) error "Opción desconocida: -$OPTARG." ;;
@@ -60,12 +78,14 @@ shift "$((OPTIND - 1))"
 [[ $# -eq 0 ]] || error "Argumentos inesperados. Consulta -h."
 [[ -n "$OUTPUT_DIR" ]] || error "El directorio de salida está vacío."
 
-# Entrada predeterminada.
+if [[ "$OUTPUT_SELECTED" -eq 1 && "$SAVE_REPORT" -eq 0 ]]; then
+    error "La opción -o requiere -r."
+fi
+
 if [[ -z "$DOMAIN" && -z "$USERNAME" && -z "$EMAIL" ]]; then
     DOMAIN="example.org"
 fi
 
-# Comprobar los archivos necesarios antes de empezar.
 command -v python3 >/dev/null 2>&1 \
     || error "Se necesita Python 3."
 
@@ -87,28 +107,36 @@ if [[ -n "$EMAIL" ]]; then
         || error "No se encuentra modules/breaches.py."
 fi
 
-# Crear una carpeta independiente para esta ejecución.
-mkdir -p -- "$OUTPUT_DIR"
-OUTPUT_DIR="$(cd -- "$OUTPUT_DIR" && pwd)"
-RUN_DIR="$(mktemp -d "$OUTPUT_DIR/run-XXXXXXXX")"
+# Limpiar los archivos temporales al terminar o recibir una interrupción.
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
-# Ejecutar únicamente los módulos solicitados.
+if [[ "$SAVE_REPORT" -eq 1 ]]; then
+    mkdir -p -- "$OUTPUT_DIR"
+    OUTPUT_DIR="$(cd -- "$OUTPUT_DIR" && pwd)"
+    WORK_DIR="$(mktemp -d "$OUTPUT_DIR/run-XXXXXXXX")"
+else
+    WORK_DIR="$(mktemp -d)"
+fi
+
 if [[ -n "$DOMAIN" ]]; then
     python3 "$BASE_DIR/modules/domain.py" "$DOMAIN" \
-        > "$RUN_DIR/domain.json"
+        > "$WORK_DIR/domain.json"
 fi
 
 if [[ -n "$USERNAME" ]]; then
     python3 "$BASE_DIR/modules/usernames.py" "$USERNAME" \
-        > "$RUN_DIR/usernames.json"
+        > "$WORK_DIR/usernames.json"
 fi
 
 if [[ -n "$EMAIL" ]]; then
     python3 "$BASE_DIR/modules/breaches.py" "$EMAIL" \
-        > "$RUN_DIR/breaches.json"
+        > "$WORK_DIR/breaches.json"
 fi
 
-# Consolidar los resultados.
-python3 "$BASE_DIR/report.py" "$RUN_DIR"
-
-printf 'Informe: %s/report.json\n' "$RUN_DIR"
+if [[ "$SAVE_REPORT" -eq 1 ]]; then
+    python3 "$BASE_DIR/report.py" "$WORK_DIR" --save
+else
+    python3 "$BASE_DIR/report.py" "$WORK_DIR"
+fi
