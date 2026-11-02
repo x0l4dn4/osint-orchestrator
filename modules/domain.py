@@ -6,9 +6,14 @@ import argparse
 import json
 import re
 import subprocess
+import sys
+from contextlib import redirect_stderr
 
 import dns.exception
 import dns.resolver
+from rich.console import Console
+from rich.json import JSON
+from rich.panel import Panel
 
 
 class DomainUtility:
@@ -27,7 +32,6 @@ class DomainUtility:
             },
         }
 
-        # Validar el dominio antes de realizar consultas.
         labels = domain.split(".")
         valid_label = r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?"
 
@@ -38,14 +42,12 @@ class DomainUtility:
             or not all(re.fullmatch(valid_label, label) for label in labels)
         ):
             result["status"] = "error"
-            result["message"] = (
-                "Dominio no válido. Introduce un dominio ASCII o punycode "
-                "sin protocolo, puerto ni rutas."
-            )
+            result["message"] = "Dominio no válido."
             return result
 
-        # Consultar los registros utilizando los resolvers del sistema.
-        record_types = ("A", "AAAA", "MX", "NS", "TXT", "SOA", "CAA", "CNAME")
+        record_types = (
+            "A", "AAAA", "MX", "NS", "TXT", "SOA", "CAA", "CNAME"
+        )
 
         try:
             resolver = dns.resolver.Resolver()
@@ -77,7 +79,6 @@ class DomainUtility:
                         "records": [],
                         "message": "El nombre consultado no existe en DNS.",
                     }
-                    # No repetir consultas para un nombre inexistente.
                     break
 
                 except dns.exception.DNSException:
@@ -95,7 +96,6 @@ class DomainUtility:
                 "message": "No se pudo configurar el resolver DNS.",
             }
 
-        # Ejecutar WHOIS sin shell y sin guardar logs.
         try:
             response = subprocess.run(
                 ["whois", domain],
@@ -147,12 +147,24 @@ class DomainUtility:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Consulta registros DNS y WHOIS de un dominio."
+        description="Consulta DNS y WHOIS de un dominio."
     )
-    parser.add_argument("domain", help="Dominio que se desea consultar.")
+    parser.add_argument("target")
+    parser.add_argument("--live", action="store_true")
     args = parser.parse_args()
 
     utility = DomainUtility()
-    result = utility.run(args.domain)
 
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    if args.live:
+        with redirect_stderr(sys.stdout):
+            result = utility.run(args.target)
+
+        Console().print(
+            Panel(
+                JSON(json.dumps(result, ensure_ascii=False)),
+                title="DOMINIO · DNS Y WHOIS",
+            )
+        )
+    else:
+        result = utility.run(args.target)
+        print(json.dumps(result, ensure_ascii=False, indent=2))

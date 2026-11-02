@@ -222,4 +222,9 @@ __marimo__/
 
 # Modules 
 
+.venv/
+__pycache__/
+*.pyc
+.env
 results/
+informes/

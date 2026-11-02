@@ -6,9 +6,14 @@ import argparse
 import json
 import os
 import re
+import sys
+from contextlib import redirect_stderr
 from urllib.parse import quote
 
 import requests
+from rich.console import Console
+from rich.json import JSON
+from rich.panel import Panel
 
 
 class BreachesUtility:
@@ -64,9 +69,7 @@ class BreachesUtility:
 
         except requests.Timeout:
             result["status"] = "error"
-            result["message"] = (
-                "La consulta a HIBP superó el tiempo de espera."
-            )
+            result["message"] = "La consulta a HIBP superó el tiempo de espera."
             return result
 
         except requests.RequestException:
@@ -76,7 +79,6 @@ class BreachesUtility:
 
         result["data"]["http_status"] = response.status_code
 
-        # HIBP utiliza 404 cuando no encuentra brechas para la cuenta.
         if response.status_code == 404:
             result["data"]["found"] = False
             return result
@@ -120,7 +122,6 @@ class BreachesUtility:
 
         result["data"]["found"] = bool(breaches)
 
-        # Conservar metadatos de las brechas, no credenciales filtradas.
         for breach in breaches:
             result["data"]["breaches"].append({
                 "name": breach.get("Name"),
@@ -143,10 +144,22 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Consulta la exposición de un email en HIBP."
     )
-    parser.add_argument("email", help="Correo electrónico que se consultará.")
+    parser.add_argument("target")
+    parser.add_argument("--live", action="store_true")
     args = parser.parse_args()
 
     utility = BreachesUtility()
-    result = utility.run(args.email)
 
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    if args.live:
+        with redirect_stderr(sys.stdout):
+            result = utility.run(args.target)
+
+        Console().print(
+            Panel(
+                JSON(json.dumps(result, ensure_ascii=False)),
+                title="EMAIL · HAVE I BEEN PWNED",
+            )
+        )
+    else:
+        result = utility.run(args.target)
+        print(json.dumps(result, ensure_ascii=False, indent=2))

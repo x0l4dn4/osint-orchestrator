@@ -29,7 +29,9 @@ class ReportUtility:
             "results": {},
         }
 
-        for module in ("domain", "usernames", "breaches"):
+        modules = ("domain", "whatsmyname", "breaches")
+
+        for module in modules:
             source = directory / f"{module}.json"
 
             if not source.exists():
@@ -70,7 +72,6 @@ class ReportUtility:
         elif "skipped" in statuses:
             report["status"] = "partial"
 
-        # Guardar únicamente cuando se ha solicitado.
         output = None
 
         if save:
@@ -80,13 +81,19 @@ class ReportUtility:
                 json.dump(report, file, ensure_ascii=False, indent=2)
                 file.write("\n")
 
-        # Presentación en pantalla.
         console = Console()
+
         colors = {
             "ok": "green",
             "skipped": "yellow",
             "error": "red",
             "partial": "yellow",
+        }
+
+        titles = {
+            "domain": "DOMINIO · DNS Y WHOIS",
+            "whatsmyname": "USERNAME · WHATSMYNAME",
+            "breaches": "EMAIL · HAVE I BEEN PWNED",
         }
 
         console.rule("Resultados OSINT")
@@ -105,7 +112,7 @@ class ReportUtility:
                         json.dumps(data, ensure_ascii=False),
                         indent=2,
                     ),
-                    title=module.upper(),
+                    title=titles[module],
                     border_style=colors[data["status"]],
                 )
             )
@@ -120,15 +127,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Muestra resultados OSINT y guarda un informe opcional."
     )
-    parser.add_argument(
-        "directory",
-        help="Directorio con los resultados de los módulos.",
-    )
-    parser.add_argument(
-        "--save",
-        action="store_true",
-        help="Guardar también report.json.",
-    )
+    parser.add_argument("directory")
+    parser.add_argument("--save", action="store_true")
     args = parser.parse_args()
 
     try:

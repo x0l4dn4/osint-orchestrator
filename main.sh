@@ -13,8 +13,8 @@ USERNAME=""
 EMAIL=""
 
 SAVE_REPORT=0
+OUTPUT_SELECTED=0
 OUTPUT_DIR="$BASE_DIR/results"
-WORK_DIR=""
 
 usage() {
     cat <<'EOF'
@@ -22,25 +22,28 @@ Uso:
   ./main.sh [entradas] [opciones]
 
 Entradas:
-  -d DOMINIO      Consultar un dominio.
-  -u USERNAME     Buscar un nombre de usuario.
-  -e EMAIL        Consultar brechas de un correo.
+  -d DOMINIO      Consultar DNS y WHOIS.
+  -u USERNAME     Buscar perfiles con WhatsMyName.
+  -e EMAIL        Consultar brechas mediante HIBP.
 
 Opciones:
-  -r              Guardar también un informe JSON.
+  -r              Guardar resultados e informe JSON.
   -o DIRECTORIO   Directorio de salida. Requiere -r.
   -h              Mostrar ayuda.
 
-Por defecto:
-  Los resultados se muestran en pantalla.
-  No se guardan archivos permanentes.
-  Sin entradas se consulta example.org.
+Sin -r:
+  Los resultados se muestran por stdout.
+  No se crean archivos de resultados.
+
+Sin entradas:
+  Se consulta example.org.
 
 Ejemplos:
   ./main.sh -d example.org
   ./main.sh -u mi_usuario
-  ./main.sh -e usuario@example.org -r
-  ./main.sh -d example.org -r -o ./informes
+  ./main.sh -e usuario@example.org
+  ./main.sh -u mi_usuario -r
+  ./main.sh -d example.org -u mi_usuario -r -o ./informes
 EOF
 }
 
@@ -48,14 +51,6 @@ error() {
     printf 'Error: %s\n' "$1" >&2
     exit 1
 }
-
-cleanup() {
-    if [[ "$SAVE_REPORT" -eq 0 && -n "$WORK_DIR" ]]; then
-        rm -rf -- "$WORK_DIR"
-    fi
-}
-
-OUTPUT_SELECTED=0
 
 while getopts ":d:u:e:ro:h" option; do
     case "$option" in
@@ -76,7 +71,6 @@ done
 shift "$((OPTIND - 1))"
 
 [[ $# -eq 0 ]] || error "Argumentos inesperados. Consulta -h."
-[[ -n "$OUTPUT_DIR" ]] || error "El directorio de salida está vacío."
 
 if [[ "$OUTPUT_SELECTED" -eq 1 && "$SAVE_REPORT" -eq 0 ]]; then
     error "La opción -o requiere -r."
@@ -89,54 +83,54 @@ fi
 command -v python3 >/dev/null 2>&1 \
     || error "Se necesita Python 3."
 
-[[ -f "$BASE_DIR/report.py" ]] \
-    || error "No se encuentra report.py."
+MODULES=()
+TARGETS=()
 
 if [[ -n "$DOMAIN" ]]; then
-    [[ -f "$BASE_DIR/modules/domain.py" ]] \
-        || error "No se encuentra modules/domain.py."
+    MODULES+=("domain")
+    TARGETS+=("$DOMAIN")
 fi
 
 if [[ -n "$USERNAME" ]]; then
-    [[ -f "$BASE_DIR/modules/usernames.py" ]] \
-        || error "No se encuentra modules/usernames.py."
+    MODULES+=("whatsmyname")
+    TARGETS+=("$USERNAME")
+
+    [[ -f "$BASE_DIR/data/wmn-data.json" ]] \
+        || error "No se encuentra data/wmn-data.json."
 fi
 
 if [[ -n "$EMAIL" ]]; then
-    [[ -f "$BASE_DIR/modules/breaches.py" ]] \
-        || error "No se encuentra modules/breaches.py."
+    MODULES+=("breaches")
+    TARGETS+=("$EMAIL")
 fi
 
-# Limpiar los archivos temporales al terminar o recibir una interrupción.
-trap cleanup EXIT
-trap 'exit 130' INT
-trap 'exit 143' TERM
+for module in "${MODULES[@]}"; do
+    [[ -f "$BASE_DIR/modules/$module.py" ]] \
+        || error "No se encuentra modules/$module.py."
+done
 
-if [[ "$SAVE_REPORT" -eq 1 ]]; then
+if [[ "$SAVE_REPORT" -eq 0 ]]; then
+    # Sin archivos de resultados: salida directa por stdout.
+    for index in "${!MODULES[@]}"; do
+        python3 "$BASE_DIR/modules/${MODULES[$index]}.py" \
+            "${TARGETS[$index]}" --live
+    done
+else
+    [[ -n "$OUTPUT_DIR" ]] \
+        || error "El directorio de salida está vacío."
+
+    [[ -f "$BASE_DIR/report.py" ]] \
+        || error "No se encuentra report.py."
+
     mkdir -p -- "$OUTPUT_DIR"
     OUTPUT_DIR="$(cd -- "$OUTPUT_DIR" && pwd)"
-    WORK_DIR="$(mktemp -d "$OUTPUT_DIR/run-XXXXXXXX")"
-else
-    WORK_DIR="$(mktemp -d)"
-fi
+    RUN_DIR="$(mktemp -d "$OUTPUT_DIR/run-XXXXXXXX")"
 
-if [[ -n "$DOMAIN" ]]; then
-    python3 "$BASE_DIR/modules/domain.py" "$DOMAIN" \
-        > "$WORK_DIR/domain.json"
-fi
+    for index in "${!MODULES[@]}"; do
+        python3 "$BASE_DIR/modules/${MODULES[$index]}.py" \
+            "${TARGETS[$index]}" \
+            > "$RUN_DIR/${MODULES[$index]}.json"
+    done
 
-if [[ -n "$USERNAME" ]]; then
-    python3 "$BASE_DIR/modules/usernames.py" "$USERNAME" \
-        > "$WORK_DIR/usernames.json"
-fi
-
-if [[ -n "$EMAIL" ]]; then
-    python3 "$BASE_DIR/modules/breaches.py" "$EMAIL" \
-        > "$WORK_DIR/breaches.json"
-fi
-
-if [[ "$SAVE_REPORT" -eq 1 ]]; then
-    python3 "$BASE_DIR/report.py" "$WORK_DIR" --save
-else
-    python3 "$BASE_DIR/report.py" "$WORK_DIR"
+    python3 "$BASE_DIR/report.py" "$RUN_DIR" --save
 fi
