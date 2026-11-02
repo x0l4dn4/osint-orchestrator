@@ -3,6 +3,7 @@
 """Consulta brechas de un email en Have I Been Pwned."""
 
 import argparse
+import getpass
 import json
 import os
 import re
@@ -12,8 +13,9 @@ from urllib.parse import quote
 
 import requests
 from rich.console import Console
-from rich.json import JSON
 from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
 
 
 class BreachesUtility:
@@ -46,6 +48,11 @@ class BreachesUtility:
                 "No se ha configurado la variable HIBP_API_KEY."
             )
             return result
+
+        return self.query_hibp(email, api_key, result)
+
+    def query_hibp(self, email, api_key, result):
+        """Realiza la consulta a HIBP con la clave proporcionada."""
 
         url = (
             "https://haveibeenpwned.com/api/v3/breachedaccount/"
@@ -139,6 +146,73 @@ class BreachesUtility:
 
         return result
 
+    def show(self, result):
+        """Muestra el resultado de las brechas de forma legible."""
+
+        console = Console()
+        data = result["data"]
+
+        console.rule(f"EMAIL · {data['email']}")
+
+        if result["status"] == "skipped":
+            console.print(
+                Panel(
+                    result.get("message", "Consulta omitida."),
+                    title="HAVE I BEEN PWNED",
+                    border_style="yellow",
+                )
+            )
+            return
+
+        if result["status"] == "error":
+            console.print(
+                Panel(
+                    result.get("message", "La consulta falló."),
+                    title="HAVE I BEEN PWNED",
+                    border_style="red",
+                )
+            )
+            return
+
+        breaches = data["breaches"]
+
+        if not breaches:
+            console.print(
+                Panel(
+                    "No se han encontrado brechas para este correo.",
+                    title="HAVE I BEEN PWNED",
+                    border_style="green",
+                )
+            )
+            return
+
+        table = Table(
+            title=f"{len(breaches)} brechas encontradas",
+            show_lines=True,
+        )
+        table.add_column("Brecha")
+        table.add_column("Fecha")
+        table.add_column("Datos expuestos")
+
+        for breach in breaches:
+            data_classes = breach.get("data_classes") or []
+
+            table.add_row(
+                str(breach.get("title") or breach.get("name") or "—"),
+                str(breach.get("breach_date") or "—"),
+                ", ".join(data_classes) if data_classes else "—",
+            )
+
+        console.print(table)
+
+        console.print(
+            Text(
+                "El resultado indica exposición registrada por HIBP; "
+                "no incluye ni recupera credenciales.",
+                style="dim",
+            )
+        )
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -148,18 +222,33 @@ if __name__ == "__main__":
     parser.add_argument("--live", action="store_true")
     args = parser.parse_args()
 
+    console = Console(stderr=True)
     utility = BreachesUtility()
+
+    # En modo interactivo, permite introducir la clave si falta.
+    if args.live and not os.environ.get("HIBP_API_KEY", "").strip():
+        console.print(
+            Panel(
+                "No se ha configurado la variable HIBP_API_KEY.\n"
+                "¿Quieres introducirla ahora para realizar la consulta?",
+                title="HAVE I BEEN PWNED",
+                border_style="yellow",
+            )
+        )
+
+        answer = input("¿Introducir la clave? [s/N]: ").strip().lower()
+
+        if answer in ("s", "si", "sí", "y", "yes"):
+            api_key = getpass.getpass("Clave de HIBP: ").strip()
+
+            if api_key:
+                # La clave solo se utiliza durante esta ejecución.
+                os.environ["HIBP_API_KEY"] = api_key
+
+    result = utility.run(args.target)
 
     if args.live:
         with redirect_stderr(sys.stdout):
-            result = utility.run(args.target)
-
-        Console().print(
-            Panel(
-                JSON(json.dumps(result, ensure_ascii=False)),
-                title="EMAIL · HAVE I BEEN PWNED",
-            )
-        )
+            utility.show(result)
     else:
-        result = utility.run(args.target)
         print(json.dumps(result, ensure_ascii=False, indent=2))

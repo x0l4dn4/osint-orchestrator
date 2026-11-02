@@ -8,7 +8,8 @@ umask 077
 
 BASE_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
-DOMAIN=""
+DNS_DOMAIN=""
+WHOIS_DOMAIN=""
 USERNAME=""
 EMAIL=""
 
@@ -22,7 +23,8 @@ Uso:
   ./main.sh [entradas] [opciones]
 
 Entradas:
-  -d DOMINIO      Consultar DNS y WHOIS.
+  -d DOMINIO      Consultar registros DNS.
+  -w DOMINIO      Consultar información WHOIS.
   -u USERNAME     Buscar perfiles con WhatsMyName.
   -e EMAIL        Consultar brechas mediante HIBP.
 
@@ -35,15 +37,17 @@ Sin -r:
   Los resultados se muestran por stdout.
   No se crean archivos de resultados.
 
-Sin entradas:
-  Se consulta example.org.
+Sin -d ni -w:
+  Se consulta example.org en DNS y WHOIS.
 
 Ejemplos:
   ./main.sh -d example.org
+  ./main.sh -w example.org
   ./main.sh -u mi_usuario
   ./main.sh -e usuario@example.org
+  ./main.sh -d example.org -w example.org
   ./main.sh -u mi_usuario -r
-  ./main.sh -d example.org -u mi_usuario -r -o ./informes
+  ./main.sh -d example.org -w example.org -r -o ./informes
 EOF
 }
 
@@ -52,9 +56,10 @@ error() {
     exit 1
 }
 
-while getopts ":d:u:e:ro:h" option; do
+while getopts ":d:w:u:e:ro:h" option; do
     case "$option" in
-        d) DOMAIN="$OPTARG" ;;
+        d) DNS_DOMAIN="$OPTARG" ;;
+        w) WHOIS_DOMAIN="$OPTARG" ;;
         u) USERNAME="$OPTARG" ;;
         e) EMAIL="$OPTARG" ;;
         r) SAVE_REPORT=1 ;;
@@ -76,8 +81,10 @@ if [[ "$OUTPUT_SELECTED" -eq 1 && "$SAVE_REPORT" -eq 0 ]]; then
     error "La opción -o requiere -r."
 fi
 
-if [[ -z "$DOMAIN" && -z "$USERNAME" && -z "$EMAIL" ]]; then
-    DOMAIN="example.org"
+# Entrada predeterminada para DNS y WHOIS.
+if [[ -z "$DNS_DOMAIN" && -z "$WHOIS_DOMAIN" ]]; then
+    DNS_DOMAIN="example.org"
+    WHOIS_DOMAIN="example.org"
 fi
 
 command -v python3 >/dev/null 2>&1 \
@@ -86,9 +93,14 @@ command -v python3 >/dev/null 2>&1 \
 MODULES=()
 TARGETS=()
 
-if [[ -n "$DOMAIN" ]]; then
-    MODULES+=("domain")
-    TARGETS+=("$DOMAIN")
+if [[ -n "$DNS_DOMAIN" ]]; then
+    MODULES+=("dns_lookup")
+    TARGETS+=("$DNS_DOMAIN")
+fi
+
+if [[ -n "$WHOIS_DOMAIN" ]]; then
+    MODULES+=("whois_lookup")
+    TARGETS+=("$WHOIS_DOMAIN")
 fi
 
 if [[ -n "$USERNAME" ]]; then
@@ -110,7 +122,7 @@ for module in "${MODULES[@]}"; do
 done
 
 if [[ "$SAVE_REPORT" -eq 0 ]]; then
-    # Sin archivos de resultados: salida directa por stdout.
+    # Salida bonita directa; sin archivos de resultados.
     for index in "${!MODULES[@]}"; do
         python3 "$BASE_DIR/modules/${MODULES[$index]}.py" \
             "${TARGETS[$index]}" --live

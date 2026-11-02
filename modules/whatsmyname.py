@@ -13,8 +13,7 @@ from urllib.parse import quote, urlsplit
 
 import requests
 from rich.console import Console
-from rich.json import JSON
-from rich.panel import Panel
+from rich.table import Table
 from rich.text import Text
 
 
@@ -72,7 +71,7 @@ class WhatsMyNameUtility:
         encoded_username = quote(username, safe="")
 
         def check_site(site):
-            """Consulta una regla y devuelve su estado sin compartir estado."""
+            """Consulta una regla y devuelve su estado."""
 
             template = site.get("uri_check")
             positive = site.get("e_string")
@@ -163,6 +162,9 @@ class WhatsMyNameUtility:
 
             return "unknown", None
 
+        console.rule(f"USERNAME · {username}")
+        console.print(Text("Buscando con WhatsMyName...", style="cyan"))
+
         with ThreadPoolExecutor(max_workers=8) as executor:
             futures = [
                 executor.submit(check_site, site)
@@ -184,10 +186,11 @@ class WhatsMyNameUtility:
                 if state == "found":
                     result["data"]["profiles"].append(profile)
 
-                    line = Text("[WhatsMyName] ", style="green")
-                    line.append(str(profile["platform"]), style="bold")
-                    line.append(f" → {profile['url']}")
-                    console.print(line)
+                    console.print(
+                        Text("[+] ", style="bold green")
+                        + Text(profile["platform"], style="bold")
+                        + Text(f" → {profile['url']}")
+                    )
 
                 elif state == "not_found":
                     result["data"]["not_found"] += 1
@@ -199,6 +202,8 @@ class WhatsMyNameUtility:
             key=lambda profile: str(profile["platform"]).lower()
         )
 
+        self.show_summary(console, result)
+
         if result["data"]["indeterminate_sites"] > 0:
             result["status"] = "error"
             result["message"] = (
@@ -207,6 +212,51 @@ class WhatsMyNameUtility:
             )
 
         return result
+
+    def show_summary(self, console, result):
+        """Muestra el resumen final de la búsqueda."""
+
+        data = result["data"]
+        profiles = data["profiles"]
+
+        table = Table(title="Perfiles encontrados")
+        table.add_column("Plataforma")
+        table.add_column("Categoría")
+        table.add_column("Perfil")
+
+        if profiles:
+            for profile in profiles:
+                table.add_row(
+                    str(profile["platform"]),
+                    str(profile.get("category") or "—"),
+                    str(profile["url"]),
+                )
+        else:
+            table.add_row("—", "—", "No se encontraron coincidencias.")
+
+        console.print(table)
+
+        summary = (
+            f"Consultas concluyentes: {data['sites_checked']}\n"
+            f"Coincidencias candidatas: {len(profiles)}\n"
+            f"Sin coincidencia: {data['not_found']}\n"
+            f"Indeterminadas: {data['indeterminate_sites']}\n"
+            f"Reglas omitidas: {data['sites_skipped']}"
+        )
+
+        console.print(
+            Text(
+                summary,
+                style="green" if result["status"] == "ok" else "yellow",
+            )
+        )
+
+        console.print(
+            Text(
+                "Las coincidencias son candidatas y no confirman identidad.",
+                style="dim",
+            )
+        )
 
 
 if __name__ == "__main__":
@@ -222,13 +272,6 @@ if __name__ == "__main__":
     if args.live:
         with redirect_stderr(sys.stdout):
             result = utility.run(args.target)
-
-        Console().print(
-            Panel(
-                JSON(json.dumps(result, ensure_ascii=False)),
-                title="USERNAME · WHATSMYNAME",
-            )
-        )
     else:
         result = utility.run(args.target)
         print(json.dumps(result, ensure_ascii=False, indent=2))

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Muestra los resultados OSINT y guarda un informe cuando se solicita."""
+"""Guarda el informe OSINT y muestra un resumen legible."""
 
 import argparse
 import json
@@ -9,14 +9,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from rich.console import Console
-from rich.json import JSON
 from rich.panel import Panel
 from rich.text import Text
 
 
 class ReportUtility:
     def run(self, directory, save=False):
-        """Muestra los resultados y, opcionalmente, guarda report.json."""
+        """Guarda el informe y muestra un resumen de los resultados."""
 
         directory = Path(directory).resolve()
 
@@ -29,7 +28,7 @@ class ReportUtility:
             "results": {},
         }
 
-        modules = ("domain", "whatsmyname", "breaches")
+        modules = ("dns_lookup", "whois_lookup", "whatsmyname", "breaches")
 
         for module in modules:
             source = directory / f"{module}.json"
@@ -81,7 +80,11 @@ class ReportUtility:
                 json.dump(report, file, ensure_ascii=False, indent=2)
                 file.write("\n")
 
-        console = Console()
+        self.show(console=Console(), report=report, output=output)
+        return report
+
+    def show(self, console, report, output):
+        """Muestra un resumen por módulo."""
 
         colors = {
             "ok": "green",
@@ -91,12 +94,13 @@ class ReportUtility:
         }
 
         titles = {
-            "domain": "DOMINIO · DNS Y WHOIS",
-            "whatsmyname": "USERNAME · WHATSMYNAME",
-            "breaches": "EMAIL · HAVE I BEEN PWNED",
+            "dns_lookup": "Dominio · DNS",
+            "whois_lookup": "Dominio · WHOIS",
+            "whatsmyname": "Username · WhatsMyName",
+            "breaches": "Email · HIBP",
         }
 
-        console.rule("Resultados OSINT")
+        console.rule("Informe OSINT")
 
         console.print(
             Text(
@@ -108,10 +112,7 @@ class ReportUtility:
         for module, data in report["results"].items():
             console.print(
                 Panel(
-                    JSON(
-                        json.dumps(data, ensure_ascii=False),
-                        indent=2,
-                    ),
+                    self.module_summary(module, data),
                     title=titles[module],
                     border_style=colors[data["status"]],
                 )
@@ -120,12 +121,82 @@ class ReportUtility:
         if output is not None:
             console.print(Text(f"Informe guardado: {output}"))
 
-        return report
+    def module_summary(self, module, data):
+        """Genera una descripción breve para cada módulo."""
+
+        result = data["data"]
+        lines = []
+
+        if module == "dns":
+            lines.append(f"Dominio: {result.get('domain', '—')}")
+
+            records = result.get("records", {})
+            found = [
+                record_type
+                for record_type, query in records.items()
+                if isinstance(query, dict) and query.get("records")
+            ]
+
+            lines.append(
+                f"Tipos DNS con registros: {', '.join(found) or '—'}"
+            )
+
+        elif module == "whois":
+            lines.append(f"Dominio: {result.get('domain', '—')}")
+            lines.append(f"Estado: {data.get('status', 'desconocido')}")
+
+        elif module == "whatsmyname":
+            lines.append(f"Username: {result.get('username', '—')}")
+
+            profiles = result.get("profiles", [])
+            lines.append(f"Coincidencias candidatas: {len(profiles)}")
+
+            for profile in profiles[:10]:
+                lines.append(
+                    f"• {profile.get('platform', '—')}: "
+                    f"{profile.get('url', '—')}"
+                )
+
+            if len(profiles) > 10:
+                lines.append(
+                    f"• … y {len(profiles) - 10} coincidencias más."
+                )
+
+        elif module == "breaches":
+            lines.append(f"Email: {result.get('email', '—')}")
+
+            found = result.get("found")
+            breaches = result.get("breaches", [])
+
+            if found is True:
+                lines.append(f"Brechas encontradas: {len(breaches)}")
+
+                for breach in breaches[:10]:
+                    lines.append(
+                        f"• {breach.get('title') or breach.get('name')}: "
+                        f"{breach.get('breach_date') or '—'}"
+                    )
+
+                if len(breaches) > 10:
+                    lines.append(
+                        f"• … y {len(breaches) - 10} brechas más."
+                    )
+
+            elif found is False:
+                lines.append("No se encontraron brechas.")
+
+            else:
+                lines.append("No se pudo determinar el resultado.")
+
+        if data.get("message"):
+            lines.append(f"Mensaje: {data['message']}")
+
+        return Text("\n".join(lines))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Muestra resultados OSINT y guarda un informe opcional."
+        description="Guarda y muestra un informe OSINT."
     )
     parser.add_argument("directory")
     parser.add_argument("--save", action="store_true")
