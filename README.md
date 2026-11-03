@@ -94,13 +94,16 @@ Si ejecutas `-e` sin la variable configurada, la herramienta preguntará si quie
 ./main.sh [entradas] [opciones]
 ```
 
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/f274cbd7-28d7-4ea2-8cc1-271d3f230de7" />
+
 ### Consultar DNS
 
 ```bash
 ./main.sh -d example.org
 ```
-
 Muestra los registros DNS disponibles para el dominio.
+
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/98930272-83bd-40f7-8b5e-c08919dfe2d0" />
 
 ### Consultar WHOIS
 
@@ -110,6 +113,9 @@ Muestra los registros DNS disponibles para el dominio.
 
 Muestra la respuesta WHOIS pública del dominio.
 
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/dba5c373-3942-4803-820f-4c955db3800a" />
+
+
 ### Buscar un username
 
 ```bash
@@ -117,6 +123,8 @@ Muestra la respuesta WHOIS pública del dominio.
 ```
 
 Consulta el catálogo de WhatsMyName y muestra las coincidencias candidatas a medida que se reciben.
+
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/13cf16ac-fb92-4124-9c3d-0a83f43932dc" />
 
 ### Consultar brechas
 
