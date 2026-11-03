@@ -74,20 +74,6 @@ rm data/wmn-data.json
 ./main.sh -u mi_usuario
 ```
 
-## Configurar HIBP
-
-La consulta de brechas mediante HIBP requiere una clave de API.
-
-Para introducirla en la sesión actual sin escribirla en el historial de comandos:
-
-```bash
-read -rsp "Clave de HIBP: " HIBP_API_KEY
-printf '\n'
-export HIBP_API_KEY
-```
-
-Si ejecutas `-e` sin la variable configurada, la herramienta preguntará si quieres introducirla. La clave se usará solo durante esa ejecución: no se guarda en disco ni aparece en el informe.
-
 ## Uso
 
 ```bash
