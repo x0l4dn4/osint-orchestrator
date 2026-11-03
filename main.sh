@@ -168,7 +168,14 @@ else
 
     mkdir -p -- "$OUTPUT_DIR"
     OUTPUT_DIR="$(cd -- "$OUTPUT_DIR" && pwd)"
-    RUN_DIR="$(mktemp -d "$OUTPUT_DIR/run-XXXXXXXX")"
+    TARGET_NAME="$(printf '%s' "${TARGETS[0]}" |
+    tr -c 'A-Za-z0-9._-' '-' |
+    sed 's/^-*//; s/-*$//')"
+
+[[ -n "$TARGET_NAME" ]] || TARGET_NAME="resultado"
+
+RUN_DIR="$OUTPUT_DIR/${TARGET_NAME}-$(date +%Y%m%d-%H%M%S)"
+mkdir -p -- "$RUN_DIR"
 
     for index in "${!MODULES[@]}"; do
         python3 "$BASE_DIR/modules/${MODULES[$index]}.py" \
