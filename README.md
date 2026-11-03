@@ -132,7 +132,9 @@ Consulta el catálogo de WhatsMyName y muestra las coincidencias candidatas a me
 ./main.sh -e usuario@example.org
 ```
 
-Consulta HIBP. Si no hay clave configurada, preguntará si deseas introducirla.
+Consulta la API de [XposedOrNot](https://github.com/XposedOrNot/XposedOrNot-API)
+
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/b2d7041a-f44c-4fd9-b54a-b85df61285ea" />
 
 ### Combinar búsquedas
 
