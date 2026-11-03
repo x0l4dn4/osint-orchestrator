@@ -7,7 +7,7 @@ Herramienta modular escrita en Bash y modulos en Python para recopilar informaci
 | `-d DOMINIO` | `dns_lookup` | Registros DNS: `A`, `AAAA`, `MX`, `NS`, `TXT`, `SOA`, `CAA` y `CNAME`. |
 | `-w DOMINIO` | `whois_lookup` | Respuesta WHOIS pública del dominio. |
 | `-u USERNAME` | `whatsmyname` | Búsqueda de perfiles públicos mediante el catálogo de WhatsMyName. |
-| `-e EMAIL` | `breaches` | Brechas registradas para un correo en Have I Been Pwned. |
+| `-e EMAIL` | `breaches` | Brechas registradas para un correo en Have XposedOrNot. |
 | `-r` | `report` | Guarda los resultados individuales y un informe JSON. |
 | `-o DIRECTORIO` | `main.sh` | Define la carpeta de salida; requiere `-r`. |
 
@@ -36,7 +36,6 @@ Cada módulo es una utilidad Python independiente. `main.sh` solo selecciona y e
 - Python 3.9 o superior.
 - `whois` instalado en el sistema.
 - `curl` para descargar automáticamente el catálogo de WhatsMyName.
-- Una clave de API de Have I Been Pwned para la opción `-e`.
 
 ## Instalación
 
