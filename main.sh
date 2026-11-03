@@ -59,11 +59,17 @@ error() {
     exit 1
 }
 
+# Compatibilidad con --help.
 if [[ "${1:-}" == "--help" ]]; then
     usage
     exit 0
 fi
 
+# Sin argumentos, mostrar el manual.
+if [[ "$#" -eq 0 ]]; then
+    usage
+    exit 0
+fi
 
 while getopts ":d:w:u:e:ro:h" option; do
     case "$option" in
@@ -122,8 +128,19 @@ if [[ -n "$USERNAME" ]]; then
     MODULES+=("whatsmyname")
     TARGETS+=("$USERNAME")
 
-    [[ -f "$BASE_DIR/data/wmn-data.json" ]] \
-        || error "No se encuentra data/wmn-data.json."
+    WMN_DATA="$BASE_DIR/data/wmn-data.json"
+
+    if [[ ! -f "$WMN_DATA" ]]; then
+        command -v curl >/dev/null 2>&1 \
+            || error "Se necesita curl para descargar el catálogo de WhatsMyName."
+
+        mkdir -p -- "$BASE_DIR/data"
+
+        curl --fail --silent --show-error \
+            --output "$WMN_DATA" \
+            https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json \
+            || error "No se pudo descargar el catálogo de WhatsMyName."
+    fi
 fi
 
 if [[ -n "$EMAIL" ]]; then
