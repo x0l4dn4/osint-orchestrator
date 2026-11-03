@@ -1,4 +1,4 @@
-Herramienta modular para recopilar información pública sobre dominios, nombres de usuario y direcciones de correo electrónico.
+Herramienta modular escrita en Bash y modulos en Python para recopilar información pública sobre dominios, nombres de usuario y direcciones de correo electrónico.
 
 ## Funcionalidades
 
@@ -27,7 +27,6 @@ osint/
 │   └── wmn-data.json
 ├── report.py
 ├── requirements.txt
-└── .gitignore
 ```
 
 Cada módulo es una utilidad Python independiente. `main.sh` solo selecciona y ejecuta los módulos solicitados.
@@ -36,6 +35,7 @@ Cada módulo es una utilidad Python independiente. `main.sh` solo selecciona y e
 
 - Python 3.9 o superior.
 - `whois` instalado en el sistema.
+- `curl` para descargar automáticamente el catálogo de WhatsMyName.
 - Una clave de API de Have I Been Pwned para la opción `-e`.
 
 ## Instalación
@@ -53,14 +53,25 @@ Instala las dependencias Python:
 python3 -m pip install -r requirements.txt
 ```
 
-Descarga el catálogo de WhatsMyName:
+## Configurar WhatsMyName
+
+No es necesario descargar el catálogo manualmente.
+
+Al ejecutar:
 
 ```bash
-mkdir -p data
+./main.sh -u mi_usuario
+```
 
-curl --fail --silent --show-error \
-    --output data/wmn-data.json \
-    https://raw.githubusercontent.com/WebBreacher/WhatsMyName/main/wmn-data.json
+la herramienta comprueba si existe `data/wmn-data.json`. Si no existe, lo descarga automáticamente desde el repositorio oficial de WhatsMyName.
+
+Requisito: tener `curl` instalado.
+
+Para actualizar el catálogo más adelante, elimina el archivo y vuelve a ejecutar una búsqueda con `-u`:
+
+```bash
+rm data/wmn-data.json
+./main.sh -u mi_usuario
 ```
 
 ## Configurar HIBP
@@ -127,13 +138,13 @@ Ejecuta los módulos en este orden:
 DNS → WHOIS → WhatsMyName → HIBP
 ```
 
-### Ejecución sin entradas
+### Ejecutar sin argumentos
 
 ```bash
 ./main.sh
 ```
 
-Consulta DNS y WHOIS del dominio de ejemplo `example.org`.
+Muestra el manual de uso.
 
 ## Guardar informes
 
@@ -143,15 +154,17 @@ Añade `-r` para conservar los resultados y generar un informe JSON:
 ./main.sh -d example.org -u mi_usuario -r
 ```
 
-Los archivos se guardarán en:
+Los archivos se guardan en una carpeta con el nombre del primer objetivo y la fecha y hora de ejecución:
 
 ```text
 results/
-└── run-XXXXXXXX/
+└── mi_usuario-20261103-230500/
     ├── dns_lookup.json
     ├── whatsmyname.json
     └── report.json
 ```
+
+Solo se guardan los archivos correspondientes a los módulos ejecutados.
 
 Para elegir otra carpeta:
 
@@ -170,7 +183,7 @@ La opción `-o` requiere `-r`.
 -e EMAIL         Consultar brechas mediante HIBP.
 -r               Guardar resultados e informe JSON.
 -o DIRECTORIO    Directorio de salida. Requiere -r.
--h               Mostrar ayuda.
+-h, --help       Mostrar ayuda.
 ```
 
 ## Estados de resultado
@@ -191,30 +204,3 @@ Un informe con estado `error` puede contener resultados válidos de otros módul
 - La respuesta WHOIS puede no incluir datos del titular por políticas de privacidad o restricciones del servidor.
 - Los registros DNS reflejan la información publicada en el momento de la consulta.
 - Los servicios externos pueden limitar, bloquear o cambiar sus respuestas.
-
-## Limitaciones
-
-La versión actual no incluye:
-
-- Búsquedas por nombre completo o número de teléfono.
-- Enumeración de subdominios.
-- Consultas RDAP.
-- Extracción de metadatos de documentos.
-- Correlación automática entre entidades.
-- Grafos de relaciones.
-- Informes HTML o PDF.
-- Reintentos automáticos.
-- Interfaz web.
-
-## Seguridad y privacidad
-
-- No introduzcas identificadores de terceros sin autorización.
-- Las consultas se envían a servicios externos: HIBP y las plataformas incluidas en el catálogo de WhatsMyName.
-- No compartas tu clave de HIBP ni la añadas al repositorio.
-- Revisa el contenido de `results/` o de la carpeta elegida con `-o` antes de publicar o compartir archivos.
-
-## Licencias y atribución
-
-- El catálogo de WhatsMyName se distribuye bajo licencia CC BY-SA 4.0 y requiere atribución a Micah Hoffman y colaboradores.
-- Have I Been Pwned es un servicio externo con sus propias condiciones de uso y límites de API.
-- Revisa las licencias y condiciones de las dependencias antes de publicar o redistribuir el proyecto.
