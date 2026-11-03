@@ -59,6 +59,12 @@ error() {
     exit 1
 }
 
+if [[ "${1:-}" == "--help" ]]; then
+    usage
+    exit 0
+fi
+
+
 while getopts ":d:w:u:e:ro:h" option; do
     case "$option" in
         d)
